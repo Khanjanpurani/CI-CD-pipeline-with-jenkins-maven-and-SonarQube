@@ -1,51 +1,38 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/xsd/maven-4.0.0.xsd http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <groupId>com.mycompany</groupId>
     <artifactId>spring-boot-app</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-    
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.6.4</version>
-        <relativePath/> <!-- Remove relativePath element -->
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    
+
     <dependencies>
-        <!-- Spring Boot dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
-        <!-- Add any additional dependencies here -->
-
     </dependencies>
-    
+
     <build>
         <plugins>
-            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>com.mycompany.app.App</mainClass> <!-- Specify the main class -->
-                </configuration>
             </plugin>
-
-            <!-- SonarQube Maven Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.9.1.2184</version>
             </plugin>
-
-            <!-- Docker Maven Plugin -->
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -57,6 +44,17 @@
                         <goals>
                             <goal>build</goal>
                         </goals>
+                        <configuration>
+                            <dockerDirectory>${project.basedir}</dockerDirectory>
+                            <imageName>${docker.registry}/${project.groupId}/${project.artifactId}:${project.version}</imageName>
+                            <resources>
+                                <resource>
+                                    <targetPath>/</targetPath>
+                                    <directory>${project.build.directory}</directory>
+                                    <include>${project.build.finalName}.jar</include>
+                                </resource>
+                            </resources>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>push-image</id>
@@ -64,19 +62,12 @@
                         <goals>
                             <goal>push</goal>
                         </goals>
+                        <configuration>
+                            <dockerDirectory>${project.basedir}</dockerDirectory>
+                            <imageName>${docker.registry}/${project.groupId}/${project.artifactId}:${project.version}</imageName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <imageName>${docker.registry}/${project.groupId}/${project.artifactId}:${project.version}</imageName>
-                    <dockerHost>unix:///var/run/docker.sock</dockerHost>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                    </resources>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -85,11 +76,4 @@
         <java.version>11</java.version>
         <docker.registry>ghcr.io/Khanjanpurani</docker.registry>
     </properties>
-    
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-    </repositories>
 </project>
