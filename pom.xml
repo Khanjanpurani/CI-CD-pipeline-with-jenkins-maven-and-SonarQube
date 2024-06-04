@@ -13,9 +13,11 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.6.4</version>
+        <relativePath/> <!-- Remove relativePath element -->
     </parent>
     
     <dependencies>
+        <!-- Add your dependencies here -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -24,9 +26,13 @@
     
     <build>
         <plugins>
+            <!-- Add the Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.mycompany.app.App</mainClass> <!-- Specify the main class -->
+                </configuration>
             </plugin>
         </plugins>
     </build>
