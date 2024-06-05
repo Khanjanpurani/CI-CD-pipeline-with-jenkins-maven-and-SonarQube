@@ -10,7 +10,8 @@ FROM openjdk:11-jre-slim
 
 WORKDIR /app
 
-COPY --from=build /app/target/your-app.jar /app/your-app.jar
+COPY --from=build /app/target/*.jar /app/your-app.jar
 
 EXPOSE 8080
+
 CMD ["java", "-jar", "/app/your-app.jar"]
