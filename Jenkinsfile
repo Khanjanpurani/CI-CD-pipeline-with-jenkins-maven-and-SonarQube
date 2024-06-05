@@ -3,12 +3,15 @@ pipeline {
     tools {
         maven 'Maven 3.x'
     }
-
+    
     environment {
+        
         SONARQUBE_URL = 'http://localhost:9000'
-        SONARQUBE_TOKEN = credentials('sonarqube-api-token')
+        SONARQUBE_TOKEN = credentials('sonarqube-api-token') 
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
         DOCKER_IMAGE = 'puranikhanjan307/springboot'
+        SLACK_CHANNEL = '#jenkins'  
+        SLACK_CREDENTIAL_ID = 'slack-webhook'  
     }
 
     parameters {
@@ -19,6 +22,7 @@ pipeline {
     stages {
         stage('SCM') {
             steps {
+               
                 git url: 'https://github.com/Khanjanpurani/CI-CD-pipeline-with-jenkins-maven-and-SonarQube.git', branch: 'main'
             }
         }
@@ -32,6 +36,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
+                   
                     def app = docker.build("${env.DOCKER_IMAGE}:${env.BUILD_ID}")
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
                         app.push("${env.BUILD_ID}")
@@ -49,6 +54,12 @@ pipeline {
             }
         }
 
+        stage('Packaging') {
+            steps {
+                bat 'mvn clean package'
+            }
+        }
+
         stage('Publish') {
             steps {
                 archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
@@ -57,7 +68,7 @@ pipeline {
 
         stage('Run Docker Image') {
             steps {
-                script {
+                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
                         def app = docker.image("${env.DOCKER_IMAGE}:${params.IMAGE_TAG}")
                         app.pull()
@@ -67,6 +78,21 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            slackSend(channel: "${env.SLACK_CHANNEL}",
+                      color: "good",
+                      message: "Build ${env.BUILD_ID} succeeded and Docker image published!",
+                      tokenCredentialId: "${env.SLACK_CREDENTIAL_ID}")
+        }
+        failure {
+            slackSend(channel: "${env.SLACK_CHANNEL}",
+                      color: "danger",
+                      message: "Build ${env.BUILD_ID} failed.",
+                      tokenCredentialId: "${env.SLACK_CREDENTIAL_ID}")
         }
     }
 }
